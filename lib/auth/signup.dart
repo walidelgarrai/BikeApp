@@ -1,5 +1,11 @@
 import 'package:bike/auth/login.dart';
+import 'package:bike/model/user_model.dart';
+import 'package:bike/screens/home.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:lottie/lottie.dart';  
 
 class RegistrationPage extends StatefulWidget {
   const RegistrationPage({Key? key}) : super(key: key);
@@ -9,6 +15,7 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  final _auth = FirebaseAuth.instance;
   bool checked = false;
   // our form key
   final _formKey = GlobalKey<FormState>();
@@ -24,7 +31,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
       keyboardType: TextInputType.name,
       autofocus: false,
       controller: nameEditingController,
-      obscureText: true,
+      validator: (value) {
+        RegExp regex = new RegExp(r'^.{3,}$');
+        if (value!.isEmpty) {
+          return ("Veuillez saisir un nom");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Veuillez saisir un nom valide > 3");
+        }
+      },
       onSaved: (value) {
         nameEditingController.text = value!;
       },
@@ -46,7 +61,17 @@ class _RegistrationPageState extends State<RegistrationPage> {
       keyboardType: TextInputType.emailAddress,
       autofocus: false,
       controller: emailEditingController,
-      obscureText: true,
+      validator: (value) {
+        if (value!.isEmpty) {
+          return ("Veuillez saisir votre email");
+        }
+        // reg expression for email validation
+        if (!RegExp("^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+.[a-z]")
+            .hasMatch(value)) {
+          return ("Adresse email non valide");
+        }
+        return null;
+      },
       onSaved: (value) {
         emailEditingController.text = value!;
       },
@@ -68,6 +93,15 @@ class _RegistrationPageState extends State<RegistrationPage> {
       autofocus: false,
       controller: passwordEditingController,
       obscureText: true,
+      validator: (value) {
+        RegExp regex = new RegExp(r'^.{6,}$');
+        if (value!.isEmpty) {
+          return ("Veuillez saisir un mot de passe");
+        }
+        if (!regex.hasMatch(value)) {
+          return ("Veuillez saisir un mot de passe valide");
+        }
+      },
       onSaved: (value) {
         passwordEditingController.text = value!;
       },
@@ -89,6 +123,13 @@ class _RegistrationPageState extends State<RegistrationPage> {
       autofocus: false,
       controller: confirmPasswordEditingController,
       obscureText: true,
+      validator: (value) {
+        if (confirmPasswordEditingController.text !=
+            passwordEditingController.text) {
+          return "Password don't match";
+        }
+        return null;
+      },
       onSaved: (value) {
         confirmPasswordEditingController.text = value!;
       },
@@ -106,153 +147,124 @@ class _RegistrationPageState extends State<RegistrationPage> {
       ),
     );
 
-    final registrationButton = Material(
+    final signUpButton = Material(
       elevation: 5,
-      borderRadius: BorderRadius.circular(30),
       color: Colors.indigoAccent,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(
+          color: Colors.black,
+        ),
+        borderRadius: BorderRadius.circular(30),
+      ),
       child: MaterialButton(
           padding: EdgeInsets.fromLTRB(20, 15, 20, 15),
           minWidth: MediaQuery.of(context).size.width,
           onPressed: () {
-
+            signUp(emailEditingController.text, passwordEditingController.text);
           },
-          shape: RoundedRectangleBorder(
-            side: BorderSide(
-              color: Colors.black,
-            ),
-            borderRadius: BorderRadius.circular(30),
-          ),
           child: Text(
-            "Accepter et continue",
+            "SignUp",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-              color: Colors.white,),
+                fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
           )),
     );
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        brightness: Brightness.light,
-        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.indigoAccent),
+          onPressed: () {
+            // passing this to our root
+            Navigator.of(context).pop();
+          },
+        ),
       ),
-      body: Container(
-        height: MediaQuery.of(context).size.height,
-        width: double.infinity,
-        child: Column(
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Text("Inscription", style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),),
-                SizedBox(height: 20,),
-                Text("Rejoignez bike dès aujourd'hui.",style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.grey[700],
-                ),),
-              ],
-            ),
-            SizedBox(height: 10,),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  SizedBox(height: 30,),
-                  nameField,
-                  SizedBox(height: 30,),
-                  emailField,
-                  SizedBox(height: 30,),
-                  passwordField,
-                  SizedBox(height: 30,),
-                  confirmPasswordField,
-                  SizedBox(height: 30,),
-                  CheckboxListTile(
-                    title: Text("J'accepte les condition d'utilisation et la politique de confidentialité",style: TextStyle(
-                      fontSize: 11,
-                    ),),
-                    value: checked, onChanged: (bool? value) {  },
-                  ),
-                  SizedBox(height: 30,),
-                  registrationButton,
-                  SizedBox(
-                    height: 20,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Text("Vous avez déjà un compte ? "),
-                      GestureDetector(
-                        onTap: (){
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoginPage()));
-                        },
-                        child: Text(
-                          "Se connecter",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 15,color: Colors.indigoAccent
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+      body: Center(
+        child: SingleChildScrollView(
+          child: Container(
+            color: Colors.white,
+            child: Padding(
+              padding: const EdgeInsets.all(36.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                        child: Lottie.network('https://assets5.lottiefiles.com/packages/lf20_1qsofnf5.json'),
 
-                ],
-              ),
-
-            ),
-            SizedBox(height: 10,),
-            OrDivider(),
-            SizedBox(height: 10,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  padding: EdgeInsets.all(1),
-                  decoration: BoxDecoration(border: Border.all(
-                    width: 2,
-                    color: Colors.white
-                  ),shape: BoxShape.circle),
-                  child: Image.asset('assets/images/facebook.png'),
-                ),
-                Container(
-                  padding: EdgeInsets.all(1),
-                  decoration: BoxDecoration(border: Border.all(
-                      width: 2,
-                      color: Colors.white
-                  ),shape: BoxShape.circle),
-                  child: Image.asset('assets/images/gmail.png'),
-                ),
-
-                Container(
-                  padding: EdgeInsets.all(1),
-                  decoration: BoxDecoration(border: Border.all(
-                      width: 2,
-                      color: Colors.white
-                  ),shape: BoxShape.circle),
-                  child: Image.asset('assets/images/phone.png'),
-                ),
-
-              ],
-            )
-            /*Container(
-              height: MediaQuery.of(context).size.height / 3,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/images/login.png')
+                        /*child: Image.asset(
+                          "assets/logo.png",
+                          fit: BoxFit.contain,
+                        ),*/),
+                    SizedBox(height: 45),
+                    nameField,
+                    SizedBox(height: 20),
+                    emailField,
+                    SizedBox(height: 20),
+                    passwordField,
+                    SizedBox(height: 20),
+                    confirmPasswordField,
+                    SizedBox(height: 20),
+                    signUpButton,
+                    SizedBox(height: 15),
+                  ],
                 ),
               ),
-            ),*/
-          ],
+            ),
+          ),
         ),
       ),
     );
   }
+
+
+  void signUp(String email, String password) async
+  {
+    if (_formKey.currentState!.validate())
+      {
+        await _auth
+            .createUserWithEmailAndPassword(email: email, password: password)
+            .then((value) => {
+              postDetailsToFirestore()
+            }).catchError((e){
+          Fluttertoast.showToast(msg: e!.message);
+        });
+
+      }
+  }
+
+  postDetailsToFirestore() async {
+    // calling our firestore
+    // calling our user model
+    // sedning these values
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+    User? user = _auth.currentUser;
+    UserModel userModel = UserModel();
+
+    // writing all the values
+    userModel.email = user!.email;
+    userModel.uid = user.uid;
+    userModel.name = nameEditingController.text;
+
+    await firebaseFirestore
+        .collection("users")
+        .doc(user.uid)
+        .set(userModel.toMap());
+
+    Fluttertoast.showToast(msg: "Account created successfully :) ");
+    Navigator.pushAndRemoveUntil(
+        (context),
+        MaterialPageRoute(builder: (context) => HomePage()),
+            (route) => false);
+
+  }
+
 }
 
 class OrDivider extends StatelessWidget {

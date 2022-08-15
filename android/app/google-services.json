@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "904137447273",
+    "project_id": "bikeauth-e6e03",
+    "storage_bucket": "bikeauth-e6e03.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:904137447273:android:f31565691364542802cff8",
+        "android_client_info": {
+          "package_name": "com.example.bike"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "904137447273-hj7oe037felo32k0mqibn10vh9tofacc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAba0xCDRnIyccvbhjHbIJ_hl_HqSatbmI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "904137447273-hj7oe037felo32k0mqibn10vh9tofacc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
